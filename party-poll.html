@@ -374,9 +374,10 @@ function renderPoll(pollId, data){
     const pct = (count / maxCount) * 100;
     const isMine = myVote === name;
     const isLeader = leaderCount > 0 && count === leaderCount;
-    return `<button class="name-btn${isMine ? ' mine' : ''}${isLeader ? ' leader' : ''}" onclick="castVote('${pollId}', ${JSON.stringify(name)})">
+    const safeName = name.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return `<button class="name-btn${isMine ? ' mine' : ''}${isLeader ? ' leader' : ''}" data-poll="${pollId}" data-name="${safeName}">
       <span class="bar" style="width:${pct}%"></span>
-      <span class="label"><span>${name}${isMine ? ' ✓' : ''}</span><span class="count">${count}</span></span>
+      <span class="label"><span>${safeName}${isMine ? ' ✓' : ''}</span><span class="count">${count}</span></span>
     </button>`;
   }).join('');
 
@@ -388,6 +389,17 @@ function renderPoll(pollId, data){
   }
   totalEl.textContent = totalVotes + ' vote' + (totalVotes === 1 ? '' : 's') + ' so far';
 }
+
+// Click handling is delegated once at the document level (rather than inline
+// onclick attributes) so guest names with quotes/apostrophes/etc can never
+// break the generated HTML.
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('.name-btn');
+  if(!btn) return;
+  const pollId = btn.getAttribute('data-poll');
+  const name = btn.getAttribute('data-name');
+  if(pollId && name) castVote(pollId, name);
+});
 
 async function refreshPoll(pollId){
   try {
