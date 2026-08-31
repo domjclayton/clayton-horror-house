@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clayton Horror House — Vote Now Flyer</title>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 1.5cm; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Special Elite', serif;
+    background: #f4efe4;
+    color: #1a0a0a;
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .flyer {
+    width: 100%;
+    max-width: 620px;
+    background: #fffdf7;
+    border: 6px double #8b0000;
+    padding: 2.5rem 2rem;
+    text-align: center;
+  }
+  h1 {
+    font-family: 'Nosifer', cursive;
+    color: #8b0000;
+    font-size: 2.1rem;
+    margin: 0 0 0.25rem;
+    line-height: 1.2;
+  }
+  .sub {
+    font-family: 'Creepster', cursive;
+    font-size: 1.15rem;
+    color: #4a0000;
+    margin: 0 0 1.5rem;
+    letter-spacing: 0.02em;
+  }
+  .qr-wrap {
+    background: #fff;
+    border: 3px solid #1a0a0a;
+    display: inline-block;
+    padding: 1rem;
+    margin: 0.5rem 0 1.5rem;
+  }
+  .qr-wrap img { width: 260px; height: 260px; display: block; }
+  .polls {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .poll-tag {
+    font-family: 'Creepster', cursive;
+    font-size: 1.05rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    border: 2px solid;
+  }
+  .poll-tag.gold { color: #8a6d1a; border-color: #c9a84c; background: #fbf3d9; }
+  .poll-tag.pink { color: #9c1a5c; border-color: #ff5fa8; background: #fde9f2; }
+  .instructions {
+    font-size: 0.85rem;
+    color: #333;
+    line-height: 1.6;
+    max-width: 440px;
+    margin: 0 auto 1rem;
+  }
+  .url {
+    font-size: 0.75rem;
+    color: #666;
+    word-break: break-all;
+    margin-top: 1rem;
+    border-top: 1px solid #ccc;
+    padding-top: 0.75rem;
+  }
+  .print-btn {
+    display: block;
+    margin: 1.5rem auto 0;
+    font-family: 'Special Elite', serif;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.5rem;
+    background: #8b0000;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .flyer { border-width: 4px; }
+    .print-btn { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="flyer">
+    <h1>👻 Clayton Horror House</h1>
+    <p class="sub">Scan. Vote. Decide their fate.</p>
+
+    <div class="qr-wrap">
+      <img src="data:image/png;base64,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" alt="QR code to vote">
+    </div>
+
+    <div class="polls">
+      <span class="poll-tag gold">🏆 Best Costume</span>
+      <span class="poll-tag pink">🥧 Who Gets Pied</span>
+    </div>
+
+    <p class="instructions">
+      Scan the code with your phone's camera to open both live polls.
+      Pick who's rocking the best costume tonight — and who's taking a pie to the face.
+      Results update live as votes come in!
+    </p>
+
+    <div class="url">domjclayton.github.io/clayton-horror-house/party-poll.html</div>
+  </div>
+
+  <button class="print-btn" onclick="window.print()">🖨 Print this flyer</button>
+</body>
+</html>
