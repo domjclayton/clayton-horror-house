@@ -750,13 +750,16 @@ body::before {
   display: flex;
   gap: 0.5rem;
   justify-content: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   margin: 1.5rem 0;
+  padding-bottom: 0.25rem;
 }
 
 .letter-box {
   width: 2.5rem;
   height: 2.5rem;
+  flex-shrink: 0;
   border-bottom: 2px solid var(--gore);
   display: flex;
   align-items: center;
@@ -764,6 +767,11 @@ body::before {
   font-family: 'Creepster', cursive;
   font-size: 1.5rem;
   color: var(--bone);
+}
+
+@media (max-width: 480px) {
+  .word-display { gap: 0.3rem; justify-content: flex-start; }
+  .letter-box { width: 1.7rem; height: 2.1rem; font-size: 1.15rem; }
 }
 
 .alphabet {
@@ -1017,7 +1025,7 @@ body::before {
 /* ===== FOOTER ===== */
 .footer {
   text-align: center;
-  padding: 3rem 1rem;
+  padding: 3rem 1rem 6rem;
   border-top: 1px solid #200000;
   color: #555;
   font-size: 0.8rem;
@@ -1541,27 +1549,6 @@ body::before {
   cursor: pointer;
 }
 
-/* ===== SOUND TOGGLE ===== */
-#sfx-toggle {
-  position: fixed;
-  top: 1.1rem;
-  left: 1.1rem;
-  z-index: 999992;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: #120202;
-  border: 1px solid var(--deep-blood);
-  color: var(--bone);
-  font-size: 1.15rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 0 12px #00000088;
-}
-#sfx-toggle.muted { opacity: 0.55; }
-
 /* ===== LEADERBOARD ===== */
 .lb-row {
   display: flex;
@@ -1748,9 +1735,6 @@ body::before {
 <canvas id="bg-canvas"></canvas>
 <div class="blackout" id="blackout"></div>
 
-<!-- SOUND TOGGLE -->
-<button id="sfx-toggle" onclick="SFX.toggle()" title="Toggle sound">🔊</button>
-
 <!-- SECRETS HUD -->
 <div class="secrets-hud" id="secrets-hud" onclick="openSecretsPanel()">
   <div style="font-size:0.6rem;letter-spacing:0.15em;color:var(--gore);margin-bottom:0.2rem;">🔒 VAULT OF SECRETS — TAP TO OPEN</div>
@@ -1803,7 +1787,7 @@ body::before {
     <!-- SECRET 2: 5 pumpkins -->
     <div class="secret-item locked" id="secret-2">
       <div class="secret-tag">Unlock: Find all 5 hidden pumpkins</div>
-      <h3>&#127875; The Cursed Jokebook</h3>
+      <h3>&#127875; The Cursed Joke Vault</h3>
       <p id="secret-2-content" style="display:none;"></p>
     </div>
 
@@ -2416,136 +2400,6 @@ It does, however, entitle you to:
 // ╚══════════════════════════════════════════════════════════════════╝
 
 // ===== BACKGROUND CANVAS =====
-// ===== SOUND DESIGN =====
-// Everything is generated with the Web Audio API — no sound files to host,
-// so it stays inside the single HTML file. Ambient creaks/whispers loop
-// quietly in the background; stingers fire on key moments.
-const SFX = {
-  ctx: null,
-  enabled: (localStorage.getItem('chh_sfx_on') !== '0'),
-  unlocked: false,
-  ambientTimer: null,
-  masterGain: null,
-
-  init(){
-    if(this.ctx) return;
-    try {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.value = 0.5;
-      this.masterGain.connect(this.ctx.destination);
-    } catch(e){ this.ctx = null; }
-  },
-
-  unlock(){
-    this.init();
-    if(!this.ctx) return;
-    if(this.ctx.state === 'suspended') this.ctx.resume().catch(()=>{});
-    if(!this.unlocked){
-      this.unlocked = true;
-      if(this.enabled) this.startAmbient();
-    }
-  },
-
-  toggle(){
-    this.enabled = !this.enabled;
-    localStorage.setItem('chh_sfx_on', this.enabled ? '1' : '0');
-    this.updateButton();
-    if(this.enabled){ this.unlock(); this.startAmbient(); }
-    else { this.stopAmbient(); }
-  },
-
-  updateButton(){
-    const btn = document.getElementById('sfx-toggle');
-    if(!btn) return;
-    btn.textContent = this.enabled ? '🔊' : '🔇';
-    btn.classList.toggle('muted', !this.enabled);
-  },
-
-  // A short filtered-noise burst — the basis for creaks, static, camera clicks.
-  _noiseBurst(duration, filterFreq, gainVal, filterType){
-    if(!this.ctx) return;
-    const bufferSize = Math.max(1, Math.floor(this.ctx.sampleRate * duration));
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for(let i=0;i<bufferSize;i++){ data[i] = (Math.random()*2-1) * (1 - i/bufferSize); }
-    const src = this.ctx.createBufferSource();
-    src.buffer = buffer;
-    const filter = this.ctx.createBiquadFilter();
-    filter.type = filterType || 'bandpass';
-    filter.frequency.value = filterFreq;
-    const g = this.ctx.createGain();
-    g.gain.value = gainVal;
-    src.connect(filter); filter.connect(g); g.connect(this.masterGain);
-    src.start();
-    src.stop(this.ctx.currentTime + duration);
-  },
-
-  _tone(freq, duration, type, gainVal, glideTo){
-    if(!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    osc.type = type || 'sine';
-    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-    if(glideTo) osc.frequency.linearRampToValueAtTime(glideTo, this.ctx.currentTime + duration);
-    const g = this.ctx.createGain();
-    g.gain.setValueAtTime(gainVal, this.ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-    osc.connect(g); g.connect(this.masterGain);
-    osc.start();
-    osc.stop(this.ctx.currentTime + duration);
-  },
-
-  play(type){
-    if(!this.enabled) return;
-    this.unlock();
-    if(!this.ctx) return;
-    if(type === 'pumpkin'){
-      this._tone(440, 0.18, 'sine', 0.18, 880);
-    } else if(type === 'game'){
-      this._tone(523, 0.12, 'triangle', 0.15, 659);
-      setTimeout(()=>this._tone(784, 0.18, 'triangle', 0.15), 110);
-    } else if(type === 'unlock'){
-      this._tone(220, 0.5, 'sawtooth', 0.12, 110);
-      this._noiseBurst(0.4, 800, 0.06, 'lowpass');
-    } else if(type === 'scare'){
-      this._noiseBurst(0.5, 2500, 0.35, 'bandpass');
-      this._tone(90, 0.6, 'sawtooth', 0.25, 45);
-    } else if(type === 'photo'){
-      this._noiseBurst(0.06, 4000, 0.2, 'highpass');
-      setTimeout(()=>this._noiseBurst(0.03, 6000, 0.12, 'highpass'), 70);
-    }
-  },
-
-  startAmbient(){
-    if(!this.ctx || this.ambientTimer) return;
-    // Low drone
-    const drone = this.ctx.createOscillator();
-    drone.type = 'sine';
-    drone.frequency.value = 55;
-    const droneGain = this.ctx.createGain();
-    droneGain.gain.value = 0.025;
-    drone.connect(droneGain); droneGain.connect(this.masterGain);
-    drone.start();
-    this._droneOsc = drone;
-    // Occasional creaks/whispers at random intervals
-    const scheduleCreak = () => {
-      if(!this.enabled || !this.ctx) return;
-      const isWhisper = Math.random() < 0.4;
-      if(isWhisper){ this._noiseBurst(1.2, 1800, 0.02, 'bandpass'); }
-      else { this._noiseBurst(0.35, 300 + Math.random()*200, 0.03, 'lowpass'); }
-      this.ambientTimer = setTimeout(scheduleCreak, 6000 + Math.random()*9000);
-    };
-    this.ambientTimer = setTimeout(scheduleCreak, 4000 + Math.random()*4000);
-  },
-
-  stopAmbient(){
-    if(this.ambientTimer){ clearTimeout(this.ambientTimer); this.ambientTimer = null; }
-    if(this._droneOsc){ try{ this._droneOsc.stop(); }catch(e){} this._droneOsc = null; }
-  }
-};
-
-// Audio needs a user gesture to start in most browsers — unlock on first tap.
-document.addEventListener('click', function _unlockOnce(){ SFX.unlock(); document.removeEventListener('click', _unlockOnce); }, { once: true });
 
 function initBackgroundCanvas(){
   const canvas = document.getElementById('bg-canvas');
@@ -3987,7 +3841,6 @@ function findPumpkin(idx){
   const el=document.querySelector(`[data-pump="${idx}"]`);
   if(el){ el.classList.add('found'); }
   showToast(`🎃 Pumpkin ${secrets.pumpkins.length}/5 found! ${secrets.pumpkins.length===5?'All found — open the vault!':''}`);
-  SFX.play('pumpkin');
   updateHUD();
   checkUnlocks();
 }
@@ -3997,7 +3850,6 @@ function markGameComplete(gameId){
   secrets.games.push(gameId);
   saveSecrets();
   showToast(`✓ ${gameId.charAt(0).toUpperCase()+gameId.slice(1)} complete! (${secrets.games.length}/10 games)`);
-  SFX.play('game');
   updateHUD();
   checkUnlocks();
 }
@@ -4038,7 +3890,6 @@ function unlockSecret(n){
       gate.style.display='none';
       if(cipher){ cipher.style.display='block'; try{ buildCipher(); }catch(e){} }
       showToast('🔓 The Mystery of the 12th Year is now accessible!');
-      SFX.play('unlock');
     } else if(cipher&&cipher.style.display==='none'&&!secrets.mystery){
       // cipher was hidden but not by gate — show it
       if(gate) gate.style.display='none';
@@ -4054,7 +3905,6 @@ function unlockSecret(n){
   const content=document.getElementById('secret-'+n+'-content');
   if(content) content.style.display='block';
   showToast('🔓 Secret unlocked: '+el.querySelector('h3').textContent);
-  SFX.play('unlock');
 }
 
 function openSecretsPanel(){
@@ -4405,7 +4255,6 @@ async function restoreMysteryState(){
 }
 
 function bootApp(){
-  try { SFX.updateButton(); } catch(e){}
   try { initCountdown(); } catch(e){}
   try { initRSVP(); } catch(e){}
   try { initBackgroundCanvas(); } catch(e){}
@@ -5075,7 +4924,6 @@ async function loadGallery(){
 
   const unlockedCount = galleryUnlockedCount(photos.length);
   if(_lastUnlockedPhotoCount >= 0 && unlockedCount > _lastUnlockedPhotoCount){
-    SFX.play('unlock');
   }
   _lastUnlockedPhotoCount = unlockedCount;
   if(progressWrap){
@@ -5304,7 +5152,6 @@ async function boothSnap(){
   document.getElementById('booth-retake-btn').style.display = 'block';
   document.getElementById('booth-save-btn').style.display = 'block';
   snapBtn.disabled = false;
-  SFX.play('photo');
 }
 
 function boothRetake(){
