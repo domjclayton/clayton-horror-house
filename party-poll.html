@@ -156,6 +156,20 @@ h1 {
   color: var(--fog);
   min-height: 1rem;
 }
+
+.back-link {
+  display: block;
+  text-align: center;
+  margin: 2rem auto 0;
+  max-width: 480px;
+  font-family: 'Special Elite', serif;
+  font-size: 0.8rem;
+  color: var(--fog);
+  text-decoration: none;
+  border-top: 1px solid #2a1a1a;
+  padding-top: 1rem;
+}
+.back-link:hover { color: var(--gore); }
 </style>
 </head>
 <body>
@@ -190,12 +204,14 @@ h1 {
 
 <div class="status-line" id="status-line"></div>
 
+<a class="back-link" href="index.html">← Back to the Horror House</a>
+
 <script>
 // ===== GUEST LIST =====
 const GUESTS = [
   "Dom","Amanda","Deakon","Vicky S","Vinnie","Shell","John","Simon",
-  "Courtney","Zach","Paul B","Wendy","Annalisa","Kyla","Shashi","Beth",
-  "Callum","Sam","James","Mike P","Sky","Helen","Paul S","Bev","Kim",
+  "Courtney","Zach","Paul S","Wendy","Annalisa","Kyla","Shashi","Beth",
+  "Callum","Sam","James","Mike P","Sky","Helen","Paul B","Bev","Kim",
   "Kayleigh","Vicky C","Mike C","Ryan","Toni"
 ];
 
